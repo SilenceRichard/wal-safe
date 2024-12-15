@@ -5,6 +5,8 @@ import HyperText from "@/components/ui/hyper-text";
 import "./index.css";
 import BoxReveal from "./components/ui/box-reveal";
 import ShimmerButton from "./components/ui/shimmer-button";
+import FileList from "./FileList";
+import { uploadToWalrus } from "./lib/utils";
 
 function App() {
   return (
@@ -23,31 +25,41 @@ function App() {
         </Box>
       </Flex>
       <Container py={"9"} className="my-10">
-        <p className="text-9xl font-extrabold">
-          <HyperText text="WalSafe"></HyperText>
-        </p>
-        <BoxReveal boxColor={"#99efe4"} duration={0.5}>
-          <h2 className="mt-[.5rem] text-2xl font-bold">
-            File Encryption Storage Powered by{" "}
-            <span className="text-[#99efe4]">Walrus Protocol</span>
-          </h2>
-        </BoxReveal>
+        {/* tailwind 2列网格布局 */}
 
-        <BoxReveal boxColor={"#99efe4"} duration={0.5}>
-          <div className="mt-6">
-            <p className="text-lg">
-              Your files, fully encrypted and securely stored.
+        <div className="grid grid-cols-2 gap-8">
+          <div>
+            <p className="text-9xl font-extrabold">
+              <HyperText text="WalSafe"></HyperText>
             </p>
+            <BoxReveal boxColor={"#99efe4"} duration={0.5}>
+              <h2 className="mt-[.5rem] text-2xl font-bold">
+                File Encryption Storage Powered by{" "}
+                <span className="text-[#99efe4]">Walrus Protocol</span>
+              </h2>
+            </BoxReveal>
+            <BoxReveal boxColor={"#99efe4"} duration={0.5}>
+              <div className="mt-6">
+                <p className="text-lg">
+                  Your files, fully encrypted and securely stored.
+                </p>
+              </div>
+            </BoxReveal>
+            <BoxReveal boxColor={"#99efe4"} duration={0.5}>
+              <ShimmerButton className="shadow-2xl my-16" onClick={async () => {
+                const uploadData = await uploadToWalrus();
+              }}>
+                <span className="whitespace-pre-wrap text-center text-sm font-medium leading-none tracking-tight text-white dark:from-white dark:to-slate-900/10 lg:text-lg">
+                  Upload Now
+                </span>
+              </ShimmerButton>
+            </BoxReveal>
           </div>
-        </BoxReveal>
+          <div>
+            <FileList />
+          </div>
+        </div>
 
-        <BoxReveal boxColor={"#99efe4"} duration={0.5}>
-          <ShimmerButton className="shadow-2xl my-16">
-            <span className="whitespace-pre-wrap text-center text-sm font-medium leading-none tracking-tight text-white dark:from-white dark:to-slate-900/10 lg:text-lg">
-              Upload Now
-            </span>
-          </ShimmerButton>
-        </BoxReveal>
       </Container>
     </>
   );

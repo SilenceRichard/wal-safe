@@ -4,7 +4,7 @@ A  storage website deployed by walrus
 # 整体流程
 
 1. 文件上传前解析为字符串 ✅
-2. 通过加密算法加密字符串
+2. 通过加密算法加密字符串 
 3. 将加密字符串传给walrus
 4. 通过walrus下载字符串
 5. 拥有sui私钥的用户可以解密字符串

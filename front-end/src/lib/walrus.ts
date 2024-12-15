@@ -1,10 +1,4 @@
 import { PUBLISHER } from "@/constants";
-import { ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
-
-export function cn(...inputs: ClassValue[]) {
-    return twMerge(clsx(inputs));
-}
 
 export async function uploadToWalrus() {
     const response = await fetch(`${PUBLISHER}/v1/store`, {

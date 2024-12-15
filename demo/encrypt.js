@@ -37,8 +37,13 @@ async function verifySignature(aesKey, signature, publicKey) {
 
 async function main() {
   const fileString = "hello world";
-
-  // Step 1: 生成 Sui 密钥对
+  /**
+   * 1. aes
+   * 2. upload, walrus -> aes content （aes)
+   * 3. download -> aes -> 签名
+   * 
+   */
+  // Step 1: demo 生成 Sui 密钥对
   const keypair = new Ed25519Keypair();
   const publicKey = keypair.getPublicKey();
   const privateKey = keypair.getSecretKey();
@@ -46,6 +51,8 @@ async function main() {
   // Step 2: 生成 AES 密钥并加密数据
   const aesKey = generateAesKey();
   const { encrypted, iv } = encryptData(fileString, aesKey);
+
+  // upload
 
   // Step 3: 用 Sui 私钥签名 AES 密钥
   const { signature } = await signAesKey(aesKey, keypair);
