@@ -11,7 +11,11 @@ A  storage website deployed by walrus
 6. 下载文件
 
 ## 文件上传转字符串
+  - 转码
   在demo示例中展示了文本、图片、通用文件类型的不同转码方式
+  - 使用walrus上传文件
+  - 使用walrus下载文件
+
 ## 文件的加密和还原
   详见`demo/encrypt.js`,使用
 - 使用
