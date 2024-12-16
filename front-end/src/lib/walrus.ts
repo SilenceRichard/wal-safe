@@ -4,21 +4,26 @@ export interface FileInfo {
   fileName: string;
   encrypted: string;
   ivBase64: string;
+  signature: string;
 }
 
-export async function uploadToWalrus(file: File, fileInfo: FileInfo) {
-  const response = await fetch(`${PUBLISHER}/v1/store`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "text/plain",
-    },
-    body: JSON.stringify(fileInfo),
-  });
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
+export async function uploadToWalrus(fileInfo: FileInfo) {
+  try {
+    const response = await fetch(`${PUBLISHER}/v1/store`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "text/plain",
+      },
+      body: JSON.stringify(fileInfo),
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const jsonData = await response.json(); // 根据返回的数据类型调整解析方式
+    return jsonData;
+  } catch (error) {
+    console.error("uploadToWalrus error", error);
   }
-  const jsonData = await response.json(); // 根据返回的数据类型调整解析方式
-  return jsonData;
 }
 
 export async function downLoadFromWalrus(blobId: string) {

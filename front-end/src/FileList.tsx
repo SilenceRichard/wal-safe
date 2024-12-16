@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import List, { ListItem } from "./file-list";
 import NoData from "./components/ui/no-data";
 import { FileItem, useStore } from "./store";
-import { parseBase64AndDownload, parseBlobToJson } from "./lib/base64";
+import { downLoadBase64, parseBase64, parseBlobToJson } from "./lib/base64";
 import { downLoadFromWalrus, FileInfo } from "./lib/walrus";
 import {
   Dialog,
@@ -20,17 +20,37 @@ import {
 import PasswordForm from "./components/password-form";
 import { useState } from "react";
 import { Button } from "./components/ui/button";
+import { verifyPersonalMessageSignature } from '@mysten/sui/verify';
+import { useCurrentAccount } from "@mysten/dapp-kit";
+import { toast } from "sonner";
+import { LoadingSpinner } from "./components/ui/loading-spinner";
 
 function FileList() {
+  const account = useCurrentAccount();
   const items = useStore((state) => state.files);
+  const downLoading = useStore((state) => state.downloading);
+  const setdownLoading = useStore((state) => state.setDownload);
   const renderListItem = (item: FileItem, order: number) => {
     const [password, setPassword] = useState("");
     const handleDownLoad = async () => {
       try {
+        setdownLoading(true);
         const walrusStore = await downLoadFromWalrus(item.blobId);
         const resJson: FileInfo = await parseBlobToJson(walrusStore);
-        parseBase64AndDownload(resJson, password);
+        const { fileName, signature } = resJson;
+        const base64 = parseBase64(resJson, password);
+        // 验证签名，确保文件未被篡改
+        const message = new TextEncoder().encode(base64);
+        const publicKey = await verifyPersonalMessageSignature(message, signature);
+        const suiAddress = publicKey.toSuiAddress();
+        if (suiAddress !== account?.address) {
+          throw new Error("Signature verification failed");
+        }
+        downLoadBase64(fileName, base64);
+        toast.success("Download file successfully");
+        setdownLoading(false);
       } catch (error) {
+        setdownLoading(false);
         console.error("downLoadFromWalrus error", error);
       }
     };
@@ -84,13 +104,12 @@ function FileList() {
                       setparentPassword={setPassword}
                     />
                     <DialogFooter>
-                    
                       <Button
                         type="submit"
                         disabled={!password}
                         onClick={handleDownLoad}
                       >
-                        {/* {uploading && <LoadingSpinner />} */}
+                         {downLoading && <LoadingSpinner />}
                         Download File
                       </Button>
                     </DialogFooter>

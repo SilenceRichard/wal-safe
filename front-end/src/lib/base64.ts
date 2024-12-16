@@ -35,44 +35,47 @@ export const parseBlobToJson = async (blob: Blob): Promise<any> => {
 
 
 // download file
-export const parseBase64AndDownload = (fileInfo: FileInfo, password: string,) => {
+export const parseBase64 = (fileInfo: FileInfo, password: string,) => {
   try {
     // 0. 使用密钥解密文件内容
     const {fileName, encrypted, ivBase64 } = fileInfo;
     const aesKey = generateAesKey(password);
     const base64 = decryptData(encrypted, aesKey, ivBase64);
-    // 1. 去掉 Base64 前缀（如果存在）
-    const base64Content = base64.includes(",") ? base64.split(",")[1] : base64;
-
-    // 2. 将 Base64 解码为二进制数据
-    const byteCharacters = atob(base64Content); // 解码 Base64 字符串
-    const byteNumbers = new Array(byteCharacters.length);
-    for (let i = 0; i < byteCharacters.length; i++) {
-      byteNumbers[i] = byteCharacters.charCodeAt(i);
-    }
-
-    // 3. 创建 Uint8Array（字节数组）
-    const byteArray = new Uint8Array(byteNumbers);
-
-    // 4. 根据文件类型生成 Blob
-    const blob = new Blob([byteArray]);
-
-    // 5. 创建下载链接并触发下载
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = fileName;
-    document.body.appendChild(a);
-    a.click();
-
-    // 6. 清理资源
-    URL.revokeObjectURL(url);
-    document.body.removeChild(a);
-
-    console.log(`文件 "${fileName}" 下载完成`);
+    return base64;
   } catch (error) {
     console.error("解析 Base64 并下载失败:", error);
     toast.error("Read Base64 and download file failed");
     throw new Error("无法解析 Base64 并下载文件");
   }
 };
+
+export const downLoadBase64 = (fileName: string, base64: string) => {
+  // 1. 去掉 Base64 前缀（如果存在）
+  const base64Content = base64.includes(",") ? base64.split(",")[1] : base64;
+
+  // 2. 将 Base64 解码为二进制数据
+  const byteCharacters = atob(base64Content); // 解码 Base64 字符串
+  const byteNumbers = new Array(byteCharacters.length);
+  for (let i = 0; i < byteCharacters.length; i++) {
+    byteNumbers[i] = byteCharacters.charCodeAt(i);
+  }
+
+  // 3. 创建 Uint8Array（字节数组）
+  const byteArray = new Uint8Array(byteNumbers);
+
+  // 4. 根据文件类型生成 Blob
+  const blob = new Blob([byteArray]);
+
+  // 5. 创建下载链接并触发下载
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+
+  // 6. 清理资源
+  URL.revokeObjectURL(url);
+  document.body.removeChild(a);
+  console.log(`文件 "${fileName}" 下载完成`);
+}
