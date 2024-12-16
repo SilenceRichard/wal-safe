@@ -1,5 +1,4 @@
 import ShimmerButton from "@/components/ui/shimmer-button";
-import { Eye, EyeClosed } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -8,15 +7,14 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
-import { Toaster, toast } from "sonner";
+import { toast } from "sonner";
 import { useRef, useState } from "react";
 import { readBase64File } from "@/lib/base64";
 import { uploadToWalrus } from "./lib/walrus";
 import { LoadingSpinner } from "./components/ui/loading-spinner";
 import { FileItem, useStore } from "./store";
-import { encryptData, generateAesKey, ivToBase64 } from "@/lib/encrypt";
+import { encryptData, generateAesKey } from "@/lib/encrypt";
 import PasswordForm from "./components/password-form";
 import { useCurrentAccount, useSignPersonalMessage } from "@mysten/dapp-kit";
 
@@ -24,16 +22,12 @@ const UploadFileButton = () => {
   const account = useCurrentAccount();
   const { mutate: signPersonalMessage } = useSignPersonalMessage(); // 签名消息
   const [password, setpassword] = useState("");
-  const [passwordToggle, setpasswordToggle] = useState(false);
   const [isOpened, setIsOpened] = useState(false);
   const uploading = useStore((state) => state.uploading);
   const setUpload = useStore((state) => state.setUpload);
   const files = useStore((state) => state.files);
   const setFileList = useStore((state) => state.setFiles);
   const fileInputRef = useRef<any>(null);
-  const handleToggle = () => {
-    setpasswordToggle(!passwordToggle);
-  };
 
   const handleFileChange = async (event: any) => {
     const file = event.target.files[0];

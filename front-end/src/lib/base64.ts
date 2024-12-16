@@ -38,7 +38,7 @@ export const parseBlobToJson = async (blob: Blob): Promise<any> => {
 export const parseBase64 = (fileInfo: FileInfo, password: string,) => {
   try {
     // 0. 使用密钥解密文件内容
-    const {fileName, encrypted, ivBase64 } = fileInfo;
+    const { encrypted, ivBase64 } = fileInfo;
     const aesKey = generateAesKey(password);
     const base64 = decryptData(encrypted, aesKey, ivBase64);
     return base64;
