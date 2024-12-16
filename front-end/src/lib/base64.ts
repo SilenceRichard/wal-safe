@@ -1,3 +1,7 @@
+import { toast } from "sonner";
+import { decryptData, generateAesKey } from "./encrypt";
+import { FileInfo } from "./walrus";
+
 // read base64 file
 export async function readBase64File(file: File) {
   // 读取文件为 Base64
@@ -31,8 +35,12 @@ export const parseBlobToJson = async (blob: Blob): Promise<any> => {
 
 
 // download file
-export const parseBase64AndDownload = (fileName: string, base64: string) => {
+export const parseBase64AndDownload = (fileInfo: FileInfo, password: string,) => {
   try {
+    // 0. 使用密钥解密文件内容
+    const {fileName, encrypted, ivBase64 } = fileInfo;
+    const aesKey = generateAesKey(password);
+    const base64 = decryptData(encrypted, aesKey, ivBase64);
     // 1. 去掉 Base64 前缀（如果存在）
     const base64Content = base64.includes(",") ? base64.split(",")[1] : base64;
 
@@ -64,6 +72,7 @@ export const parseBase64AndDownload = (fileName: string, base64: string) => {
     console.log(`文件 "${fileName}" 下载完成`);
   } catch (error) {
     console.error("解析 Base64 并下载失败:", error);
+    toast.error("Read Base64 and download file failed");
     throw new Error("无法解析 Base64 并下载文件");
   }
 };

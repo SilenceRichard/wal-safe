@@ -7,20 +7,32 @@ import List, { ListItem } from "./file-list";
 import NoData from "./components/ui/no-data";
 import { FileItem, useStore } from "./store";
 import { parseBase64AndDownload, parseBlobToJson } from "./lib/base64";
-import { downLoadFromWalrus } from "./lib/walrus";
+import { downLoadFromWalrus, FileInfo } from "./lib/walrus";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "./components/ui/dialog";
+import PasswordForm from "./components/password-form";
+import { useState } from "react";
+import { Button } from "./components/ui/button";
 
 function FileList() {
   const items = useStore((state) => state.files);
   const renderListItem = (item: FileItem, order: number) => {
+    const [password, setPassword] = useState("");
     const handleDownLoad = async () => {
       try {
         const walrusStore = await downLoadFromWalrus(item.blobId);
-        const resJson = await parseBlobToJson(walrusStore)
-        parseBase64AndDownload(item.fileName, resJson.content);
+        const resJson: FileInfo = await parseBlobToJson(walrusStore);
+        parseBase64AndDownload(resJson, password);
       } catch (error) {
         console.error("downLoadFromWalrus error", error);
       }
-     
     };
     return (
       <ListItem
@@ -49,10 +61,41 @@ function FileList() {
                   duration: 0.95,
                 }}
               >
-                <Download
+                {/* <Download
                   className="stroke-1 h-5 w-5 text-white/80  hover:stroke-[#13EEE3]/70 "
                   onClick={handleDownLoad}
-                />
+                /> */}
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Download
+                      className="stroke-1 h-5 w-5 text-white/80  hover:stroke-[#13EEE3]/70 "
+                      // onClick={handleDownLoad}
+                    />
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                      <DialogTitle>Download File</DialogTitle>
+                      <DialogDescription>
+                        Input the file password to download
+                      </DialogDescription>
+                    </DialogHeader>
+                    <PasswordForm
+                      parentPassword={password}
+                      setparentPassword={setPassword}
+                    />
+                    <DialogFooter>
+                    
+                      <Button
+                        type="submit"
+                        disabled={!password}
+                        onClick={handleDownLoad}
+                      >
+                        {/* {uploading && <LoadingSpinner />} */}
+                        Download File
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </motion.span>
             </motion.button>
           </div>
@@ -70,11 +113,11 @@ function FileList() {
               <h3 className="text-neutral-200">File List</h3>
               <a
                 className="text-xs text-white/80"
-                href="https://www.uilabs.dev/"
+                href="https://www.walrus.xyz/build-on-walrus"
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                files will uploaded on{" "}
+                files will be uploaded on{" "}
                 <span className="text-[#13EEE3]"> @Walrus</span>
               </a>
             </div>

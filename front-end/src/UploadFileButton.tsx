@@ -19,6 +19,8 @@ import { readBase64File } from "@/lib/base64";
 import { uploadToWalrus } from "./lib/walrus";
 import { LoadingSpinner } from "./components/ui/loading-spinner";
 import { FileItem, useStore } from "./store";
+import { encryptData, generateAesKey, ivToBase64 } from "@/lib/encrypt";
+import PasswordForm from "./components/password-form";
 
 const UploadFileButton = () => {
   const [password, setpassword] = useState("");
@@ -45,7 +47,14 @@ const UploadFileButton = () => {
       setpassword("");
     };
     const base64: string = await readBase64File(file);
-    const res = await uploadToWalrus(file, base64);
+    // 加密文件
+    const aesKey = generateAesKey(password);
+    const { encrypted, iv } = encryptData(base64, aesKey);
+    const res = await uploadToWalrus(file, {
+      fileName: file.name,
+      encrypted,
+      ivBase64: iv,
+    });
     // TODO: 暂时去掉重复文件校验
     // if (res.alreadyCertified) {
     //   closeDialog();
@@ -79,7 +88,6 @@ const UploadFileButton = () => {
   return (
     <>
       <Dialog open={isOpened} onOpenChange={setIsOpened}>
-        <Toaster />
         <DialogTrigger asChild>
           <ShimmerButton className="shadow-2xl my-16">
             <span className="whitespace-pre-wrap text-center text-sm font-medium leading-none tracking-tight text-white dark:from-white dark:to-slate-900/10 lg:text-lg">
@@ -89,34 +97,15 @@ const UploadFileButton = () => {
         </DialogTrigger>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Input File Secret</DialogTitle>
+            <DialogTitle>File Secret</DialogTitle>
             <DialogDescription>
-              Please input the secret of the file you want to upload.
+              Please input the secret of the file before upload.
+              <div>
+                <b>Remember to keep your password!</b>
+              </div>
             </DialogDescription>
           </DialogHeader>
-          <div className="flex items-center space-x-2">
-            <div className="grid flex-1 gap-2">
-              <Label htmlFor="password" className="sr-only">
-                Password
-              </Label>
-              <Input
-                id="password"
-                value={password}
-                type={passwordToggle ? "text" : "password"}
-                onChange={(e) => {
-                  setpassword(e.target.value);
-                }}
-              />
-            </div>
-            <Button
-              type="submit"
-              size="sm"
-              className="px-3"
-              onClick={handleToggle}
-            >
-              {passwordToggle ? <EyeClosed /> : <Eye onClick={handleToggle} />}
-            </Button>
-          </div>
+          <PasswordForm parentPassword={password} setparentPassword={setpassword} />
           <DialogFooter>
             {/* 隐藏的文件输入框 */}
             <input

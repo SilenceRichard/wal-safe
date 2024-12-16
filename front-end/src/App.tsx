@@ -5,10 +5,12 @@ import "./index.css";
 import BoxReveal from "./components/ui/box-reveal";
 import FileList from "./FileList";
 import UploadFileButton from "./UploadFileButton";
+import { Toaster } from "sonner";
 
 function App() {
   return (
     <>
+      <Toaster />
       <Flex
         position="sticky"
         px="4"

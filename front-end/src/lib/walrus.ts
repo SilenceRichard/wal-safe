@@ -1,16 +1,18 @@
 import { PUBLISHER, AGGREGATOR } from "@/constants";
 
-export async function uploadToWalrus(file: File, base64Content: string) {
+export interface FileInfo {
+  fileName: string;
+  encrypted: string;
+  ivBase64: string;
+}
 
+export async function uploadToWalrus(file: File, fileInfo: FileInfo) {
   const response = await fetch(`${PUBLISHER}/v1/store`, {
     method: "PUT",
     headers: {
       "Content-Type": "text/plain",
     },
-    body: JSON.stringify({
-      fileName: file.name,
-      content: base64Content, // 传输纯 Base64 内容
-    }),
+    body: JSON.stringify(fileInfo),
   });
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}`);
