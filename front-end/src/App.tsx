@@ -1,12 +1,10 @@
 import { ConnectButton } from "@mysten/dapp-kit";
-import { Box, Button, Container, Flex, Heading } from "@radix-ui/themes";
-import { WalletStatus } from "./WalletStatus";
+import { Box, Container, Flex } from "@radix-ui/themes";
 import HyperText from "@/components/ui/hyper-text";
 import "./index.css";
 import BoxReveal from "./components/ui/box-reveal";
-import ShimmerButton from "./components/ui/shimmer-button";
 import FileList from "./FileList";
-import { uploadToWalrus } from "./lib/utils";
+import UploadFileButton from "./UploadFileButton";
 
 function App() {
   return (
@@ -25,8 +23,6 @@ function App() {
         </Box>
       </Flex>
       <Container py={"9"} className="my-10">
-        {/* tailwind 2列网格布局 */}
-
         <div className="grid grid-cols-2 gap-8">
           <div>
             <p className="text-9xl font-extrabold">
@@ -46,13 +42,7 @@ function App() {
               </div>
             </BoxReveal>
             <BoxReveal boxColor={"#99efe4"} duration={0.5}>
-              <ShimmerButton className="shadow-2xl my-16" onClick={async () => {
-                const uploadData = await uploadToWalrus();
-              }}>
-                <span className="whitespace-pre-wrap text-center text-sm font-medium leading-none tracking-tight text-white dark:from-white dark:to-slate-900/10 lg:text-lg">
-                  Upload Now
-                </span>
-              </ShimmerButton>
+              <UploadFileButton />
             </BoxReveal>
           </div>
           <div>

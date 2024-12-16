@@ -3,17 +3,13 @@ import { ReactNode } from "react"
 import { AnimatePresence, motion } from "motion/react"
 
 import { cn } from "@/lib/utils"
+import { FileItem } from "./store"
 
-export type Item = {
-  text: string
-  id: number
-  description: string
-}
 
 interface ListItemProps {
-  item: Item
+  item: FileItem
   order: number
-  renderExtra?: (item: Item) => React.ReactNode
+  renderExtra?: (item: FileItem) => React.ReactNode
   className?: string
 }
 
@@ -24,7 +20,7 @@ function ListItem({
   className,
 }: ListItemProps) {
   return (
-    <div className={cn("", className)} key={item.id}>
+    <div className={cn("", className)} key={item.blobId}>
       <div className="flex w-full items-center">
         <div
           className={cn(
@@ -58,16 +54,13 @@ function ListItem({
                     type: "spring",
                   }}
                 >
-
-
                   <h4
                     className={cn(
                       "tracking-tighter text-base md:text-lg",
                       "text-white/70"
                     )}
                   >
-
-                    <span>{item.text}</span>
+                    <span>{item.fileName}</span>
                   </h4>
                 </motion.div>
               </motion.div>
@@ -83,12 +76,10 @@ function ListItem({
 ListItem.displayName = "ListItem"
 
 interface ListProps {
-  items: Item[]
+  items: FileItem[]
   renderItem: (
-    item: Item,
+    item: FileItem,
     order: number,
-    onCompleteItem: (id: number) => void,
-    onRemoveItem: (id: number) => void
   ) => ReactNode
 }
 
@@ -98,7 +89,7 @@ function List({ items, renderItem }: ListProps) {
       <div className="flex flex-col">
         <AnimatePresence>
           {items?.map((item, index) =>
-            renderItem(item, index, (id: number) => { }, (id: number) => { })
+            renderItem(item, index)
           )}
         </AnimatePresence>
       </div>

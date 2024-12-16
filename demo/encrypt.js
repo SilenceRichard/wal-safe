@@ -1,9 +1,10 @@
 const crypto = require("crypto");
 const { Ed25519Keypair } = require("@mysten/sui/keypairs/ed25519");
 
-// 生成随机 AES 密钥
-function generateAesKey() {
-  return crypto.randomBytes(32); // 256-bit AES key
+// 解析用户输入的密码，生成 AES 密钥
+function generateAesKey(password) {
+  const key = crypto.createHash('sha256').update(password).digest();
+  return key;
 }
 
 // 使用 AES 加密数据
@@ -37,6 +38,7 @@ async function verifySignature(aesKey, signature, publicKey) {
 
 async function main() {
   const fileString = "hello world";
+  const password = "password";
   /**
    * 1. aes
    * 2. upload, walrus -> aes content （aes)
@@ -49,7 +51,8 @@ async function main() {
   const privateKey = keypair.getSecretKey();
 
   // Step 2: 生成 AES 密钥并加密数据
-  const aesKey = generateAesKey();
+  const aesKey = generateAesKey(password);
+  console.log("密钥:", aesKey)
   const { encrypted, iv } = encryptData(fileString, aesKey);
 
   // upload
