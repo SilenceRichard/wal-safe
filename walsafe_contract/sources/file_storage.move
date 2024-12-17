@@ -1,29 +1,42 @@
 module walsafe_contract::file_storage {
 
-    /// 文件信息结构体：使用 drop 能力，使得返回值可被丢弃
+    /// 文件信息结构体：使用 drop 能力
     public struct FileInfo has store, drop {
-        id: u64,                     // 文件的唯一数字ID
-        encrypted: vector<u8>,       // 加密的文件内容标识符
-        file_name: vector<u8>,       // 文件名
-        iv_base64: vector<u8>,       // 初始化向量
-        signature: vector<u8>,       // 文件签名
+        id: u64,
+        uploader: address,
+        encrypted: vector<u8>,
+        file_name: vector<u8>,
+        iv_base64: vector<u8>,
+        signature: vector<u8>,
     }
 
     /// 文件存储表
     public struct FileTable has key, store {
-        id: UID,                      // 对象ID
-        files: vector<FileInfo>,      // 文件信息列表
-        counter: u64,                 // 自增计数器，用于生成文件ID
+        id: UID,
+        files: vector<FileInfo>,
+        counter: u64,
+    }
+
+    /// 定义事件，添加 copy 能力
+    public struct FileInfoEvent has drop, copy {
+        id: u64,
+        uploader: address,
+        encrypted: vector<u8>,
+        file_name: vector<u8>,
+        iv_base64: vector<u8>,
+        signature: vector<u8>,
     }
 
     /// 初始化文件存储表
-    public fun init_storage(ctx: &mut TxContext): FileTable {
+    #[allow(lint(self_transfer))]
+    public fun init_storage(ctx: &mut TxContext) {
         let table_id = sui::object::new(ctx);
-        FileTable {
+        let table = FileTable {
             id: table_id,
             files: vector::empty<FileInfo>(),
             counter: 0,
-        }
+        };
+        sui::transfer::transfer(table, sui::tx_context::sender(ctx));
     }
 
     /// 上传文件信息到链上
@@ -33,10 +46,11 @@ module walsafe_contract::file_storage {
         file_name: vector<u8>,
         iv_base64: vector<u8>,
         signature: vector<u8>,
-        _ctx: &mut TxContext
+        ctx: &mut TxContext
     ) {
         let file_info = FileInfo {
             id: table.counter,
+            uploader: sui::tx_context::sender(ctx),
             encrypted,
             file_name,
             iv_base64,
@@ -46,30 +60,36 @@ module walsafe_contract::file_storage {
         table.counter = table.counter + 1;
     }
 
-    /// 根据索引查询文件信息
+    /// 根据索引查询文件信息：通过事件返回
     public fun get_file_info(
         table: &FileTable,
-        index: u64
-    ): &FileInfo {
-        vector::borrow(&table.files, index)
+        index: u64,
+        _ctx: &mut TxContext
+    ) {
+        let file_info_ref = vector::borrow(&table.files, index);
+        sui::event::emit(FileInfoEvent {
+            id: file_info_ref.id,
+            uploader: file_info_ref.uploader,
+            encrypted: file_info_ref.encrypted,
+            file_name: file_info_ref.file_name,
+            iv_base64: file_info_ref.iv_base64,
+            signature: file_info_ref.signature,
+        });
     }
 
     /// 删除文件信息（通过索引）
     public fun delete_file(
         table: &mut FileTable,
-        index: u64
+        index: u64,
+        ctx: &mut TxContext
     ) {
-        // 现在 FileInfo 有 drop 能力，可以安全丢弃返回值
+        let file_info_ref = vector::borrow(&table.files, index);
+        assert!(file_info_ref.uploader == sui::tx_context::sender(ctx), 1001);
         _ = vector::swap_remove(&mut table.files, index);
     }
 
     /// 获取文件表的长度
     public fun get_file_count(table: &FileTable): u64 {
         vector::length(&table.files)
-    }
-
-    /// 获取整个列表
-    public fun get_all_files(table: &FileTable): &vector<FileInfo> {
-        &table.files
     }
 }
