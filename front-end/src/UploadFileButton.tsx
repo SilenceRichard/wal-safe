@@ -46,7 +46,6 @@ const UploadFileButton = () => {
       setUpload(true);
       const closeDialog = () => {
         setIsOpened(false);
-        setUpload(false);
         setpassword("");
       };
       const base64: string = await readBase64File(file);
@@ -66,14 +65,15 @@ const UploadFileButton = () => {
               // 加密文件 & 上传到walrus
               const aesKey = generateAesKey(password);
               const { encrypted, iv } = encryptData(base64, aesKey);
+              closeDialog();
               const res = await uploadToWalrus({
                 fileName: file.name,
                 encrypted,
                 ivBase64: iv,
                 signature: result.signature,
               });
+              setUpload(false);
               if (res.alreadyCertified) {
-                closeDialog();
                 toast.error("The file has been uploaded before.");
                 return;
               }
@@ -85,7 +85,6 @@ const UploadFileButton = () => {
                 blobId,
               };
               setFileList([...files, fileInfo]);
-              closeDialog();
               toast.success("Upload successfully!");
             } catch (error) {
               toast.error("upload to Walrus failed");
@@ -94,10 +93,7 @@ const UploadFileButton = () => {
           },
         },
       );
-    } catch (error) {
-
-    }
-   
+    } catch (error) {}
   };
 
   const handleButtonClick = () => {
@@ -108,6 +104,9 @@ const UploadFileButton = () => {
     fileInputRef.current.click(); // 模拟点击隐藏的文件输入框
   };
   const handleDiologTriggle = () => {
+    if (uploading) {
+      return;
+    }
     if (!account) {
       toast.error("Please connect your wallet first.");
       return;
@@ -116,18 +115,19 @@ const UploadFileButton = () => {
   };
   return (
     <>
-      <Dialog open={isOpened} onOpenChange={(open: boolean) => {
-        if (uploading) {
-          return;
-        }
-        if (!open) {
-          setpassword("");
-        }
-        setIsOpened(open);
-      }}>
+      <Dialog
+        open={isOpened}
+        onOpenChange={(open: boolean) => {
+          if (!open) {
+            setpassword("");
+          }
+          setIsOpened(open);
+        }}
+      >
         <ShimmerButton className="my-16" onClick={handleDiologTriggle}>
+          {uploading && <LoadingSpinner className="mr-1"/>}
           <span className="whitespace-pre-wrap text-center text-sm font-medium leading-none tracking-tight text-white dark:from-white dark:to-slate-900/10 lg:text-lg">
-            Upload Now
+            {uploading ? "Uploading..." : "Upload Now"}
           </span>
         </ShimmerButton>
         <DialogContent className="sm:max-w-md">
@@ -136,7 +136,7 @@ const UploadFileButton = () => {
             <DialogDescription>
               <Alert
                 variant="destructive"
-                className="mt-2 border-red-600 text-red-600"
+                className="mt-2 border-red-500 text-red-500 text-lg"
               >
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>Alert</AlertTitle>

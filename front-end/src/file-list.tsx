@@ -1,24 +1,17 @@
-import { ReactNode } from "react"
+import { ReactNode } from "react";
 
-import { AnimatePresence, motion } from "motion/react"
-
-import { cn } from "@/lib/utils"
-import { FileItem } from "./store"
-
+import { AnimatePresence, motion } from "motion/react";
+import { cn } from "@/lib/utils";
+import { FileItem } from "./store";
 
 interface ListItemProps {
-  item: FileItem
-  order: number
-  renderExtra?: (item: FileItem) => React.ReactNode
-  className?: string
+  item: FileItem;
+  order: number;
+  renderExtra?: (item: FileItem) => React.ReactNode;
+  className?: string;
 }
 
-function ListItem({
-  item,
-  order,
-  renderExtra,
-  className,
-}: ListItemProps) {
+function ListItem({ item, order, renderExtra, className }: ListItemProps) {
   return (
     <div className={cn("", className)} key={item.blobId}>
       <div className="flex w-full items-center">
@@ -27,7 +20,7 @@ function ListItem({
             "relative z-auto grow",
             "h-full rounded-xl bg-[#161716]/80",
             "shadow-[0px_1px_0px_0px_hsla(0,0%,100%,.03)_inset,0px_0px_0px_1px_hsla(0,0%,100%,.03)_inset,0px_0px_0px_1px_rgba(0,0,0,.1),0px_2px_2px_0px_rgba(0,0,0,.1),0px_4px_4px_0px_rgba(0,0,0,.1),0px_8px_8px_0px_rgba(0,0,0,.1)]",
-            "cursor-pointer"
+            "cursor-pointer",
           )}
         >
           <div className="flex items-center justify-center">
@@ -43,7 +36,7 @@ function ListItem({
                   {order + 1}
                 </p>
                 <motion.div
-                  className="px-1 min-w-[150px]"
+                  className="px-1 max-w-[150px]"
                   initial={{
                     opacity: 0,
                     filter: "blur(4px)",
@@ -57,8 +50,10 @@ function ListItem({
                   <h4
                     className={cn(
                       "tracking-tighter text-base md:text-lg",
-                      "text-white/70"
+                      "text-white/70",
+                      "truncate",
                     )}
+                    title={item.fileName}
                   >
                     <span>{item.fileName}</span>
                   </h4>
@@ -70,17 +65,14 @@ function ListItem({
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-ListItem.displayName = "ListItem"
+ListItem.displayName = "ListItem";
 
 interface ListProps {
-  items: FileItem[]
-  renderItem: (
-    item: FileItem,
-    order: number,
-  ) => ReactNode
+  items: FileItem[];
+  renderItem: (item: FileItem, order: number) => ReactNode;
 }
 
 function List({ items, renderItem }: ListProps) {
@@ -88,17 +80,15 @@ function List({ items, renderItem }: ListProps) {
     return (
       <div className="flex flex-col">
         <AnimatePresence>
-          {items?.map((item, index) =>
-            renderItem(item, index)
-          )}
+          {items?.map((item, index) => renderItem(item, index))}
         </AnimatePresence>
       </div>
-    )
+    );
   }
-  return null
+  return null;
 }
 
-List.displayName = "List"
+List.displayName = "List";
 
 export { List, ListItem };
 export default List;
