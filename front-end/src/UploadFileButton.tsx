@@ -17,6 +17,8 @@ import { FileItem, useStore } from "./store";
 import { encryptData, generateAesKey } from "@/lib/encrypt";
 import PasswordForm from "./components/password-form";
 import { useCurrentAccount, useSignPersonalMessage } from "@mysten/dapp-kit";
+import { Alert, AlertDescription, AlertTitle } from "./components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 const UploadFileButton = () => {
   const account = useCurrentAccount();
@@ -30,57 +32,72 @@ const UploadFileButton = () => {
   const fileInputRef = useRef<any>(null);
 
   const handleFileChange = async (event: any) => {
-    const file = event.target.files[0];
-    if (!file) {
-      return;
-    }
-    setIsOpened(true);
-    setUpload(true);
-    const closeDialog = () => {
-      setIsOpened(false);
-      setUpload(false);
-      setpassword("");
-    };
-    const base64: string = await readBase64File(file);
-    // 生成base64签名
-    signPersonalMessage(
-      {
-        message: new TextEncoder().encode(base64),
-      },
-      {
-        onSuccess: async (result) => {
-          try {
-            // 加密文件 & 上传到walrus
-            const aesKey = generateAesKey(password);
-            const { encrypted, iv } = encryptData(base64, aesKey);
-            const res = await uploadToWalrus({
-              fileName: file.name,
-              encrypted,
-              ivBase64: iv,
-              signature: result.signature,
-            });
-            if (res.alreadyCertified) {
-              closeDialog();
-              toast.error("The file has been uploaded before.");
-              return;
-            }
-            const { newlyCreated = {}, alreadyCertified = {} } = res;
-            const blobId =
-              newlyCreated.blobObject?.blobId || alreadyCertified.blobId;
-            const fileInfo: FileItem = {
-              fileName: file.name,
-              blobId,
-            };
-            setFileList([...files, fileInfo]);
-            closeDialog();
-            toast.success("Upload successfully!");
-          } catch (error) {
-            toast.error("upload to Walrus failed");
-            setUpload(false);
-          }
+    try {
+      const file = event.target.files[0];
+      if (!file) {
+        return;
+      }
+      // 文件大小不能超过10MB
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error("The file size should be less than 10MB");
+        return;
+      }
+      setIsOpened(true);
+      setUpload(true);
+      const closeDialog = () => {
+        setIsOpened(false);
+        setUpload(false);
+        setpassword("");
+      };
+      const base64: string = await readBase64File(file);
+      // 生成base64签名
+      signPersonalMessage(
+        {
+          message: new TextEncoder().encode(base64),
         },
-      },
-    );
+        {
+          onError: (error) => {
+            toast.error("Sign message failed");
+            closeDialog();
+            throw error;
+          },
+          onSuccess: async (result) => {
+            try {
+              // 加密文件 & 上传到walrus
+              const aesKey = generateAesKey(password);
+              const { encrypted, iv } = encryptData(base64, aesKey);
+              const res = await uploadToWalrus({
+                fileName: file.name,
+                encrypted,
+                ivBase64: iv,
+                signature: result.signature,
+              });
+              if (res.alreadyCertified) {
+                closeDialog();
+                toast.error("The file has been uploaded before.");
+                return;
+              }
+              const { newlyCreated = {}, alreadyCertified = {} } = res;
+              const blobId =
+                newlyCreated.blobObject?.blobId || alreadyCertified.blobId;
+              const fileInfo: FileItem = {
+                fileName: file.name,
+                blobId,
+              };
+              setFileList([...files, fileInfo]);
+              closeDialog();
+              toast.success("Upload successfully!");
+            } catch (error) {
+              toast.error("upload to Walrus failed");
+              setUpload(false);
+            }
+          },
+        },
+      );
+    } catch (error) {
+
+    }
+   
   };
 
   const handleButtonClick = () => {
@@ -99,11 +116,16 @@ const UploadFileButton = () => {
   };
   return (
     <>
-      <Dialog open={isOpened} onOpenChange={setIsOpened}>
-        <ShimmerButton
-          className="shadow-2xl my-16"
-          onClick={handleDiologTriggle}
-        >
+      <Dialog open={isOpened} onOpenChange={(open: boolean) => {
+        if (uploading) {
+          return;
+        }
+        if (!open) {
+          setpassword("");
+        }
+        setIsOpened(open);
+      }}>
+        <ShimmerButton className="my-16" onClick={handleDiologTriggle}>
           <span className="whitespace-pre-wrap text-center text-sm font-medium leading-none tracking-tight text-white dark:from-white dark:to-slate-900/10 lg:text-lg">
             Upload Now
           </span>
@@ -112,10 +134,17 @@ const UploadFileButton = () => {
           <DialogHeader>
             <DialogTitle>File Secret</DialogTitle>
             <DialogDescription>
-              Please input the secret of the file before upload.
-              <div>
-                <b>Remember to keep your password!</b>
-              </div>
+              <Alert
+                variant="destructive"
+                className="mt-2 border-red-600 text-red-600"
+              >
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Alert</AlertTitle>
+                <AlertDescription>
+                  Please keep the password secure, it is the only way to decrypt
+                  the file
+                </AlertDescription>
+              </Alert>
             </DialogDescription>
           </DialogHeader>
           <PasswordForm
@@ -136,6 +165,7 @@ const UploadFileButton = () => {
               type="submit"
               disabled={!password}
               onClick={handleButtonClick}
+              className="bg-black text-[#fff]"
             >
               {uploading && <LoadingSpinner />}
               Upload File

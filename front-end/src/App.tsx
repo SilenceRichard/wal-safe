@@ -1,21 +1,31 @@
 import { ConnectButton } from "@mysten/dapp-kit";
-import { Box, Container, Flex } from "@radix-ui/themes";
+import { Box, Container, Flex, Theme } from "@radix-ui/themes";
 import HyperText from "@/components/ui/hyper-text";
 import "./index.css";
 import BoxReveal from "./components/ui/box-reveal";
 import FileList from "./FileList";
 import UploadFileButton from "./UploadFileButton";
 import { Toaster } from "sonner";
+import { Moon, Sun } from "lucide-react";
+import { useState } from "react";
 
 function App() {
+  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const toggleTheme = () => {
+    if (theme === "light") {
+      setTheme("dark");
+    } else {
+      setTheme("light");
+    }
+  };
   return (
-    <>
-      <Toaster />
+    <Theme appearance={theme}>
       <Flex
         position="sticky"
         px="4"
-        py="2"
+        py="4"
         justify="end"
+        align={"center"}
         style={{
           borderBottom: "1px solid var(--gray-a2)",
         }}
@@ -23,6 +33,17 @@ function App() {
         <Box>
           <ConnectButton />
         </Box>
+        {theme === "light" ? (
+          <Moon
+            className="w-6 h-6 mx-4 cursor-pointer  hover:opacity-50"
+            onClick={toggleTheme}
+          />
+        ) : (
+          <Sun
+            className="w-6 h-6 mx-4 cursor-pointer  hover:opacity-50"
+            onClick={toggleTheme}
+          />
+        )}
       </Flex>
       <Container py={"9"} className="my-10">
         <div className="grid grid-cols-2 gap-8">
@@ -51,9 +72,8 @@ function App() {
             <FileList />
           </div>
         </div>
-
       </Container>
-    </>
+    </Theme>
   );
 }
 
