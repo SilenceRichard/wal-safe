@@ -67,4 +67,9 @@ module walsafe_contract::file_storage {
     public fun get_file_count(table: &FileTable): u64 {
         vector::length(&table.files)
     }
+
+    /// 获取整个列表
+    public fun get_all_files(table: &FileTable): &vector<FileInfo> {
+        &table.files
+    }
 }
