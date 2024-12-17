@@ -5,7 +5,6 @@ import "./index.css";
 import BoxReveal from "./components/ui/box-reveal";
 import FileList from "./FileList";
 import UploadFileButton from "./UploadFileButton";
-import { Toaster } from "sonner";
 import { Moon, Sun } from "lucide-react";
 import { useState } from "react";
 
