@@ -1,2 +1,5 @@
 */node_modules
 .DS_Store
+walsafe_contract/build/
+walsafe_contract/dependencies/
+walsafe_contract/source_maps/
