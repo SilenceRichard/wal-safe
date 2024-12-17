@@ -16,19 +16,26 @@ import { LoadingSpinner } from "./components/ui/loading-spinner";
 import { FileItem, useStore } from "./store";
 import { encryptData, generateAesKey } from "@/lib/encrypt";
 import PasswordForm from "./components/password-form";
-import { useCurrentAccount, useSignPersonalMessage } from "@mysten/dapp-kit";
+import {
+  useCurrentAccount,
+  useSignAndExecuteTransaction,
+  useSignPersonalMessage,
+  useSuiClient,
+} from "@mysten/dapp-kit";
 import { Alert, AlertDescription, AlertTitle } from "./components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import { Transaction } from "@mysten/sui/transactions";
+import { File_TABLE_ID, PACKAGE_ID } from "./constants";
 
 const UploadFileButton = () => {
   const account = useCurrentAccount();
   const { mutate: signPersonalMessage } = useSignPersonalMessage(); // 签名消息
+  const { mutate: signAndExecuteTransaction } = useSignAndExecuteTransaction();
+  const suiClient = useSuiClient();
   const [password, setpassword] = useState("");
   const [isOpened, setIsOpened] = useState(false);
   const uploading = useStore((state) => state.uploading);
   const setUpload = useStore((state) => state.setUpload);
-  const files = useStore((state) => state.files);
-  const setFileList = useStore((state) => state.setFiles);
   const fileInputRef = useRef<any>(null);
 
   const handleFileChange = async (event: any) => {
@@ -84,8 +91,41 @@ const UploadFileButton = () => {
                 fileName: file.name,
                 blobId,
               };
-              setFileList([...files, fileInfo]);
-              toast.success("Upload successfully!");
+              // 拿到加密数据和blobId后，调用合约存储数据
+              const txb = new Transaction();
+              txb.moveCall({
+                target: `${PACKAGE_ID}::file_storage::upload_file`,
+                arguments: [
+                  // 传递给合约函数的参数
+                  txb.object(File_TABLE_ID),
+                  txb.pure.string(fileInfo.fileName),
+                  txb.pure.string(blobId),
+                  txb.pure.string(iv),
+                  txb.pure.string(result.signature),
+                ],
+              });
+              signAndExecuteTransaction(
+                {
+                  transaction: txb,
+                },
+                {
+                  onError: (err) => {
+                    console.error(err.message);
+                    toast.error("Something went wrong");
+                  },
+                  onSuccess: async ({ digest }) => {
+                      await suiClient.waitForTransaction({
+                      digest: digest,
+                      options: {
+                        // showEvents: true,
+                      },
+                    });
+                    toast.success("Upload successfully!");
+                    // const parsedJson = events?.[0].parsedJson;
+                    // console.log("events", events?.[0].parsedJson);
+                  },
+                },
+              );
             } catch (error) {
               toast.error("upload to Walrus failed");
               setUpload(false);
@@ -125,7 +165,7 @@ const UploadFileButton = () => {
         }}
       >
         <ShimmerButton className="my-16" onClick={handleDiologTriggle}>
-          {uploading && <LoadingSpinner className="mr-1"/>}
+          {uploading && <LoadingSpinner className="mr-1" />}
           <span className="whitespace-pre-wrap text-center text-sm font-medium leading-none tracking-tight text-white dark:from-white dark:to-slate-900/10 lg:text-lg">
             {uploading ? "Uploading..." : "Upload Now"}
           </span>

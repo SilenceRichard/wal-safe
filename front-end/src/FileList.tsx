@@ -1,8 +1,6 @@
 import { Download, Dock } from "lucide-react";
 import { motion } from "motion/react";
-
 import { cn } from "@/lib/utils";
-
 import List, { ListItem } from "./file-list";
 import NoData from "./components/ui/no-data";
 import { FileItem, useStore } from "./store";
@@ -18,19 +16,60 @@ import {
   DialogTrigger,
 } from "./components/ui/dialog";
 import PasswordForm from "./components/password-form";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "./components/ui/button";
 import { verifyPersonalMessageSignature } from "@mysten/sui/verify";
-import { useCurrentAccount } from "@mysten/dapp-kit";
+import {
+  useCurrentAccount,
+  useSignAndExecuteTransaction,
+  useSuiClient,
+} from "@mysten/dapp-kit";
 import { toast } from "sonner";
 import { LoadingSpinner } from "./components/ui/loading-spinner";
+import { File_TABLE_ID, PACKAGE_ID } from "./constants";
+import { Transaction } from "@mysten/sui/transactions";
 
 function FileList() {
   const account = useCurrentAccount();
   const items = useStore((state) => state.files);
   const downLoading = useStore((state) => state.downloading);
   const setdownLoading = useStore((state) => state.setDownload);
+  const { mutate: signAndExecuteTransaction } = useSignAndExecuteTransaction();
+  const suiClient = useSuiClient();
   const [password, setPassword] = useState("");
+  // 调用合约，读取table数据
+  const readFileListFromContract = async () => {
+    const txb = new Transaction();
+    txb.moveCall({
+      target: `${PACKAGE_ID}::file_storage::get_all_files_by_caller`,
+      arguments: [
+        // 传递给合约函数的参数
+        txb.object(File_TABLE_ID),
+      ],
+    });
+
+    // 使用 dApp Kit 提供的 React hook 来签名和执行交易
+    signAndExecuteTransaction(
+      {
+        transaction: txb,
+      },
+      {
+        onError: (err) => {
+          console.error(err.message);
+        },
+        onSuccess: async ({ digest }) => {
+          const { events } = await suiClient.waitForTransaction({
+            digest: digest,
+            options: {
+              showEvents: true,
+            },
+          });
+          // const parsedJson = events?.[0].parsedJson;
+          console.log("events", events?.[0].parsedJson);
+        },
+      },
+    );
+  };
   const renderListItem = (item: FileItem, order: number) => {
     const handleDownLoad = async () => {
       try {
@@ -124,6 +163,11 @@ function FileList() {
       />
     );
   };
+  useEffect(() => {
+    if (account) {
+      readFileListFromContract();
+    }
+  }, [account]);
   return (
     <div className="md:px-4 w-full max-w-xl ">
       <div className="mb-9 rounded-2xl  p-2 shadow-sm md:p-6 dark:bg-[#151515]/50 bg-black">
