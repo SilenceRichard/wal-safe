@@ -49,7 +49,7 @@ export const parseBase64 = (fileInfo: FileInfo, password: string,) => {
   }
 };
 
-export const downLoadBase64 = (fileName: string, base64: string) => {
+export const downLoadBase64 = (file_name: string, base64: string) => {
   // 1. 去掉 Base64 前缀（如果存在）
   const base64Content = base64.includes(",") ? base64.split(",")[1] : base64;
 
@@ -70,12 +70,12 @@ export const downLoadBase64 = (fileName: string, base64: string) => {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = fileName;
+  a.download = file_name;
   document.body.appendChild(a);
   a.click();
 
   // 6. 清理资源
   URL.revokeObjectURL(url);
   document.body.removeChild(a);
-  console.log(`文件 "${fileName}" 下载完成`);
+  console.log(`文件 "${file_name}" 下载完成`);
 }

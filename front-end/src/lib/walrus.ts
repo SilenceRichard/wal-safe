@@ -1,7 +1,7 @@
 import { PUBLISHER, AGGREGATOR } from "@/constants";
 
 export interface FileInfo {
-  fileName: string;
+  file_name: string;
   encrypted: string;
   ivBase64: string;
   signature: string;

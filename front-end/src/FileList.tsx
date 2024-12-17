@@ -34,6 +34,7 @@ function FileList() {
   const items = useStore((state) => state.files);
   const downLoading = useStore((state) => state.downloading);
   const setdownLoading = useStore((state) => state.setDownload);
+  const setFiles = useStore((state) => state.setFiles);
   const { mutate: signAndExecuteTransaction } = useSignAndExecuteTransaction();
   const suiClient = useSuiClient();
   const [password, setPassword] = useState("");
@@ -65,6 +66,11 @@ function FileList() {
             },
           });
           // const parsedJson = events?.[0].parsedJson;
+          if (events?.length) {
+            const parsedJson: { files: FileItem[] } = events?.[0].parsedJson as unknown as { files: FileItem[] };
+            const { files } = parsedJson;
+            setFiles(files);
+          }
           console.log("events", events?.[0].parsedJson);
         },
       },
@@ -76,7 +82,7 @@ function FileList() {
         setdownLoading(true);
         const walrusStore = await downLoadFromWalrus(item.blobId);
         const resJson: FileInfo = await parseBlobToJson(walrusStore);
-        const { fileName, signature } = resJson;
+        const { file_name, signature } = resJson;
         const base64 = parseBase64(resJson, password);
         // 验证签名，确保文件未被篡改
         const message = new TextEncoder().encode(base64);
@@ -88,7 +94,7 @@ function FileList() {
         if (suiAddress !== account?.address) {
           throw new Error("Signature verification failed");
         }
-        downLoadBase64(fileName, base64);
+        downLoadBase64(file_name, base64);
         toast.success("Download file successfully");
         setdownLoading(false);
       } catch (error) {

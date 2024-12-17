@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 
 export type FileItem = {
-  fileName: string
+  file_name: string
   blobId: string
 }
 

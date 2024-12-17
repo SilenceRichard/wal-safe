@@ -53,9 +53,9 @@ function ListItem({ item, order, renderExtra, className }: ListItemProps) {
                       "text-white/70",
                       "truncate",
                     )}
-                    title={item.fileName}
+                    title={item.file_name}
                   >
-                    <span>{item.fileName}</span>
+                    <span>{item.file_name}</span>
                   </h4>
                 </motion.div>
               </motion.div>

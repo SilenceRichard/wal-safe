@@ -74,7 +74,7 @@ const UploadFileButton = () => {
               const { encrypted, iv } = encryptData(base64, aesKey);
               closeDialog();
               const res = await uploadToWalrus({
-                fileName: file.name,
+                file_name: file.name,
                 encrypted,
                 ivBase64: iv,
                 signature: result.signature,
@@ -88,7 +88,7 @@ const UploadFileButton = () => {
               const blobId =
                 newlyCreated.blobObject?.blobId || alreadyCertified.blobId;
               const fileInfo: FileItem = {
-                fileName: file.name,
+                file_name: file.name,
                 blobId,
               };
               // 拿到加密数据和blobId后，调用合约存储数据
@@ -98,7 +98,7 @@ const UploadFileButton = () => {
                 arguments: [
                   // 传递给合约函数的参数
                   txb.object(File_TABLE_ID),
-                  txb.pure.string(fileInfo.fileName),
+                  txb.pure.string(fileInfo.file_name),
                   txb.pure.string(blobId),
                   txb.pure.string(iv),
                   txb.pure.string(result.signature),
