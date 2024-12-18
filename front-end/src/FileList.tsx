@@ -28,12 +28,15 @@ import { toast } from "sonner";
 import { LoadingSpinner } from "./components/ui/loading-spinner";
 import { File_TABLE_ID, PACKAGE_ID } from "./constants";
 import { Transaction } from "@mysten/sui/transactions";
+import { Skeleton } from "./components/ui/skeleton";
 
 function FileList() {
   const account = useCurrentAccount();
-  const items = useStore((state) => state.files);
   const downLoading = useStore((state) => state.downloading);
   const setdownLoading = useStore((state) => state.setDownload);
+  const fetchingFiles = useStore((state) => state.fetchingFiles);
+  const setFetchingFiles = useStore((state) => state.setFetchingFiles);
+  const items = useStore((state) => state.files);
   const setFiles = useStore((state) => state.setFiles);
   const { mutate: signAndExecuteTransaction } = useSignAndExecuteTransaction();
   const suiClient = useSuiClient();
@@ -41,6 +44,7 @@ function FileList() {
   // 调用合约，读取table数据
   const readFileListFromContract = async () => {
     const txb = new Transaction();
+    setFetchingFiles(true);
     txb.moveCall({
       target: `${PACKAGE_ID}::file_storage::get_all_files_by_caller`,
       arguments: [
@@ -57,6 +61,7 @@ function FileList() {
       {
         onError: (err) => {
           console.error(err.message);
+          setFetchingFiles(false);
         },
         onSuccess: async ({ digest }) => {
           const { events } = await suiClient.waitForTransaction({
@@ -65,13 +70,14 @@ function FileList() {
               showEvents: true,
             },
           });
-          // const parsedJson = events?.[0].parsedJson;
+          console.log("events", events);
           if (events?.length) {
-            const parsedJson: { files: FileItem[] } = events?.[0].parsedJson as unknown as { files: FileItem[] };
+            const parsedJson: { files: FileItem[] } = events?.[0]
+              .parsedJson as unknown as { files: FileItem[] };
             const { files } = parsedJson;
             setFiles(files);
           }
-          console.log("events", events?.[0].parsedJson);
+          setFetchingFiles(false);
         },
       },
     );
@@ -179,28 +185,32 @@ function FileList() {
       <div className="mb-9 rounded-2xl  p-2 shadow-sm md:p-6 dark:bg-[#151515]/50 bg-black">
         <div className=" overflow-auto p-1  md:p-4">
           <div className="flex flex-col space-y-2">
-            <div className="">
-              <h3 className="text-neutral-200">
-                <Dock className="text-[#fff] dark:text-[#1c2024] inline mr-2" />
-                File List
-              </h3>
-              <a
-                className="text-xs text-white/80"
-                href="https://www.walrus.xyz/build-on-walrus"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                files will be uploaded on{" "}
-                <span className="text-[#13EEE3]"> @Walrus</span>
-              </a>
-            </div>
-
-            {items.length ? (
-              <List items={items} renderItem={renderListItem} />
-            ) : (
-              <NoData />
-            )}
+            <h3 className="text-neutral-200">
+              <Dock className="text-[#fff] dark:text-[#1c2024] inline mr-2" />
+              File List
+            </h3>
+            <a
+              className="text-xs text-white/80"
+              href="https://www.walrus.xyz/build-on-walrus"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              files will be uploaded on{" "}
+              <span className="text-[#13EEE3]"> @Walrus</span>
+            </a>
           </div>
+          {fetchingFiles ? (
+            <div className="space-y-4 mt-4">
+              <Skeleton className="h-4 w-[80%]" />
+              <Skeleton className="h-4 w-[75%]" />
+              <Skeleton className="h-4 w-[60%]" />
+              <Skeleton className="h-4 w-[60%]" />
+            </div>
+          ) : items.length ? (
+            <List items={items} renderItem={renderListItem} />
+          ) : (
+            <NoData />
+          )}
         </div>
       </div>
     </div>
