@@ -158,7 +158,9 @@ function FileList() {
               <Skeleton className="h-4 w-[60%]" />
             </div>
           ) : items.length ? (
-            <List items={items} renderItem={renderListItem} />
+            <div className="max-h-[400px] overflow-auto">
+              <List items={items} renderItem={renderListItem} />
+            </div>
           ) : (
             <NoData />
           )}
