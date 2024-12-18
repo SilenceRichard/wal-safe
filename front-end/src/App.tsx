@@ -1,6 +1,7 @@
 import { ConnectButton } from "@mysten/dapp-kit";
 import { Box, Container, Flex, Theme } from "@radix-ui/themes";
 import HyperText from "@/components/ui/hyper-text";
+import RetroGrid from "@/components/ui/retro-grid";
 import "./index.css";
 import BoxReveal from "./components/ui/box-reveal";
 import FileList from "./FileList";
@@ -19,12 +20,14 @@ function App() {
   };
   return (
     <Theme appearance={theme}>
+      <RetroGrid />
       <Flex
         position="sticky"
         px="4"
         py="4"
         justify="end"
         align={"center"}
+        className="dark:bg-[#0c0c0c] dark:[box-shadow:0px_4px_16px_0px_rgba(0,0,0,0.30)]"
         style={{
           borderBottom: "1px solid var(--gray-a2)",
         }}
