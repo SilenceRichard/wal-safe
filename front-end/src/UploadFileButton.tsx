@@ -26,11 +26,13 @@ import { Alert, AlertDescription, AlertTitle } from "./components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { Transaction } from "@mysten/sui/transactions";
 import { File_TABLE_ID, PACKAGE_ID } from "./constants";
+import { useFetchingFiles } from "./hooks/useFetchingFiles";
 
 const UploadFileButton = () => {
   const account = useCurrentAccount();
   const { mutate: signPersonalMessage } = useSignPersonalMessage(); // 签名消息
   const { mutate: signAndExecuteTransaction } = useSignAndExecuteTransaction();
+  const { startFetchingFiles } = useFetchingFiles();
   const suiClient = useSuiClient();
   const [password, setpassword] = useState("");
   const [isOpened, setIsOpened] = useState(false);
@@ -121,8 +123,7 @@ const UploadFileButton = () => {
                       },
                     });
                     toast.success("Upload successfully!");
-                    // const parsedJson = events?.[0].parsedJson;
-                    // console.log("events", events?.[0].parsedJson);
+                    startFetchingFiles();
                   },
                 },
               );
