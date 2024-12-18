@@ -158,11 +158,11 @@ function FileList() {
               <Skeleton className="h-4 w-[60%]" />
             </div>
           ) : items.length ? (
-            <div className="max-h-[400px] overflow-auto">
+            <div className="max-h-[400px] overflow-auto mt-4">
               <List items={items} renderItem={renderListItem} />
             </div>
           ) : (
-            <NoData />
+            <NoData className="mt-4" />
           )}
         </div>
       </div>
